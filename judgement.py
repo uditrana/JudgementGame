@@ -6,8 +6,7 @@ class Judgement(object):
     def __init__(self):
         self.scores = ScoreSheet()
         self.Players = []
-        self.trick = []
-        # self.
+        self.currTrick = []
     
     def deal(self):
         pass

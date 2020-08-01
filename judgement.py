@@ -7,7 +7,6 @@ class Judgement(object):
         self.scores = ScoreSheet()
         self.Players = []
         self.currTrick = []
-        self.trick = []
         self.deck = Deck()
         self.num_cards = 52 // len(self.Players)
         # self.

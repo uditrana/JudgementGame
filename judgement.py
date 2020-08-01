@@ -13,8 +13,8 @@ class Judgement(object):
         # self.
     
     def deal(self):
-        for p in self.Players:
-            for c in range(self.num_cards):
+        for c in range(self.num_cards):
+            for p in self.Players:
                 # TODO cross-check with player class
                 p.addCard(self.deck.dealCard())
 

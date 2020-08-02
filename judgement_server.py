@@ -1,43 +1,32 @@
 import socket
 import threading
 import random
-from judgement import *
+import judgement as J
 from queue import Queue
-
-HOST = ""  # put your IP address here if playing on multiple computers
-PORT = 50003
-BACKLOG = 4
-
-dataSep = "_"
-msgSep = "\n"
-
-def dbInf(*whatever):
-	debug = False
-	if debug:
-		print(*whatever)
-
-def dbSock(*whatever):
-	debug = True
-	if debug:
-		print(*whatever)
+from util import *
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 server.bind((HOST,PORT))
 server.listen(BACKLOG)
 print("looking for connection")
 
+def sendClientMsg(cID, *msg):
+	msg = DATA_SEP.join(msg) + MSG_SEP
+	clientele[cID].send(msg.encode())
+	
+
 def handleClient(client, serverChannel, cID, clientele): # handles rcvd messages from a specific client
 	client.setblocking(1)
 	msg = ""
 	while True:
 		try:
-			msg += client.recv(128).decode("UTF-8")
-			command = msg.split(msgSep) 
+			msg += client.recv(MSG_LEN).decode("UTF-8")
+			command = msg.split(MSG_SEP) 
 			while (len(command) > 1): #if we have at least one complete command
 				readyMsg = command[0] 
-				msg = msgSep.join(command[1:]) #the rest is shit that begins the next msg
-				serverChannel.put(str(cID) + dataSep + readyMsg) # send msg str for processing
-				command = msg.split(msgSep) #go to next command (if there is one)
+				msg = MSG_SEP.join(command[1:]) #the rest is shit that begins the next msg
+				serverChannel.put(str(cID) + DATA_SEP + readyMsg) # send msg str for processing
+				command = msg.split(MSG_SEP) #go to next command (if there is one)
 		except: 
 			clientele.pop(cID)
 			return
@@ -47,50 +36,30 @@ def serverThread(clientele, serverChannel): #processes messages recieved from al
 	while True:
 		msg = serverChannel.get(True, None) 
 		dbSock("msgRcvd-->", msg) 
-		senderID, msgList = int(msg.split(dataSep)[0]), msg.split(dataSep)[1:] #separates id from msg
+		senderID, msgList = int(msg.split(DATA_SEP)[0]), msg.split(DATA_SEP)[1:] #separates id from msg
 		if (msg):
-			action = msgList[0]
-			if action=="forward":
-				dbInf ("Player" + str(senderID) + " moved forward!")
-				for cID in clientele: #for each client
-					if cID != senderID: #if client not the sender
-						sendMsg = "forward:"+str(senderID)+dataSep+msgSep #create message to all other players!
-						clientele[cID].send(sendMsg.encode()) #encode and send
-			elif action=="backward":
-				dbInf ("Player_" + str(senderID) + " moved backward!")
-				for cID in clientele: #for each client
-					if cID != senderID: #if client not the sender
-						sendMsg = "backward:"+str(senderID)+dataSep+msgSep #create message to all other players!
-						clientele[cID].send(sendMsg.encode()) 
-		serverChannel.task_done()
+			command = msgList[0]
+			# case command on all stateful server actions
+			# if command=="forward":
+			# 	dbInf ("Player" + str(senderID) + " moved forward!")
+			# 	for cID in clientele: #for each client
+			# 		if cID != senderID: #if client not the sender
+			# 			sendClientMsg(cID, "forward", str(senderID)) #encode and send message to all other players!
 
-def sendStart():
-	msg = "start:"+msgSep
-	for cID in clientele:
-		clientele[cID].send(msg.encode())
+		serverChannel.task_done()
 
 clientele = {}
 currID = 0
 
-serverChannel = Queue(100) #initialize Q
+serverChannel = Queue(100) 
 threading.Thread(target = serverThread, args = (clientele, serverChannel)).start()
-#start_new_thread(serverThread, (clientele, serverChannel))
 
 while True: #loop for adding clients
 	client, address = server.accept()
-	# dbInf(currID) #curr client ID
-	x,y,ang = position(currID) #get the position of new tank
-	print(x)
-	print (y)
-	print (ang)
-	client.send(("player:%d:%d:%d:%d"+msgSep %(currID,x,y,ang)).encode()) #send player info!
-	for cID in clientele: #tell all other peoples that there is a new player!
-		print (repr(cID), repr(currID))
-		clientele[cID].send(("newPlayer:%d:%d:%d:%d"+msgSep %(currID,x,y,ang)).encode()) #send new player info!
-		x,y,ang = position(cID) #get the position of other tanks
-		client.send(("newPlayer:%d:%d:%d:%d"+msgSep %(cID,x,y,ang)).encode()) #tell the new player about all the old players
-	clientele[currID] = client #adds a client object to dict?
+	
+	clientele[currID] = client 
+	J.new_player(cID)
 	print("connection received")
-	threading.Thread(target = handleClient, args =  #create a new thread for this new client
+	threading.Thread(target = handleClient, args =  #create a new thread to listen on this client
 												(client ,serverChannel, currID, clientele)).start()
 	currID += 1

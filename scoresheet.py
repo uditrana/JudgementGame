@@ -1,7 +1,8 @@
-def bidToScore(bid):
-    return bid*11+10
-
 class ScoreSheet(object):
+    @staticmethod
+    def bidToScore(bid):
+        return bid*11+10
+
     def __init__(self):
         self.sheet = dict() # pid to list of scores
         self.currBids = dict() # pid to list of bids

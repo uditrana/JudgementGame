@@ -8,9 +8,6 @@ class Player(object):
 
     def getHandString(self):
         return ', '.join([card.getString() for card in self.hand])
-<<<<<<< Updated upstream
-=======
 
     def getTricksWon(self):
         return len(self.tricks)
->>>>>>> Stashed changes

@@ -26,6 +26,6 @@ class Trick(object):
                 self.highCard = card
 
     def finishTrick(self):
-        for pid, card in self.cards:
+        for ind, (pid, card) in enumerate(self.cards):
             if card == self.highCard:
-                return cards, pid, self.highCard
+                return ind, cards, pid, self.highCard

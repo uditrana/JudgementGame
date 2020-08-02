@@ -1,6 +1,6 @@
 from card_class import *
 from collections import OrderedDict
-
+from util import *
 from scoresheet import *
 from player import *
 from trick import *
@@ -12,15 +12,22 @@ class Judgement(object):
         self.currTrick = Trick()
         self.deck = Deck()
         self.num_cards = 52 // len(self.Players)
-
-    def add_player(self, pid):
-        p = Player(pid)
-        self.Players[pid] = p
     
     def deal(self):
         for c in range(self.num_cards):
             for p in self.Players.values():
                 p.addCard(self.deck.dealCard())
+
+    def find_players(self):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+        self.server.bind((HOST,PORT))
+        self.server.listen(BACKLOG)
+
+        while True: #loop for adding clients
+            client, address = self.server.accept()
+            pid = len(self.Players)
+            
+            self.Players[len(self.Players)] = Player(pid, client)
 
     def collect_bids(self):
         for ind, (pid, p) in enumerate(self.Players.items()): # TODO changing player order
@@ -51,3 +58,7 @@ class Judgement(object):
 
     def end_game(self):
         raise NotImplementedError
+
+    def broadcastMsg(self, *msg):
+        for pid, player in self.Players:
+            player.sendMsg(*msg)

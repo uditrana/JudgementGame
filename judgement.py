@@ -13,7 +13,7 @@ class Judgement(object):
         self.deck = Deck()
         self.num_cards = 52 // len(self.Players)
 
-    def add_player(pid):
+    def add_player(self, pid):
         p = Player(pid)
         self.Players[pid] = p
     
@@ -23,7 +23,7 @@ class Judgement(object):
                 p.addCard(self.deck.dealCard())
 
     def collect_bids(self):
-        for ind, (pid, p) in enumerate(self.Players.items()):
+        for ind, (pid, p) in enumerate(self.Players.items()): # TODO changing player order
             if ind == len(self.Players) - 1:
                 invalid = self.num_cards - self.scores.getSumOfBids()
                 bid = p.getBid(invalid = invalid)

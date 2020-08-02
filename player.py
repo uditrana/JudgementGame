@@ -1,3 +1,5 @@
+import judgement_server as svr
+
 class Player(object):
     def __init__(self, id, name=None):
         if name == None:

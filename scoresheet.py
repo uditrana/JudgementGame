@@ -27,3 +27,6 @@ class ScoreSheet(object):
         else:
             self.addScore(pid, 0)
         self.currBids.pop(pid)
+
+    def addBid(self, pid, bid):
+        self.currBids[pid] = bid
